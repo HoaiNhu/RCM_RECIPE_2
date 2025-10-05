@@ -20,6 +20,15 @@ import json
 ROOT_DIR = Path(__file__).resolve().parents[0]
 sys.path.insert(0, str(ROOT_DIR))
 
+# Ensure UTF-8 stdout/stderr for Windows consoles (avoid UnicodeEncodeError with emojis)
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 # Import our models
 from infrastructure.ml_models.trend_predictor import TrendPredictor
 from domain.services.context_aware_recipe_service import ContextAwareRecipeService

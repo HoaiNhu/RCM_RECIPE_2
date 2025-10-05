@@ -31,7 +31,7 @@ NHIỆM VỤ: Tạo công thức bánh ngọt chi tiết từ các nguyên liệ
 - Nguyên liệu: {ingredients}
 - Ngôn ngữ: {self._get_language_name(language)}
 
-YÊU CẦU OUTPUT theo format JSON (bằng tiếng {self._get_language_name(language)}):
+ YÊU CẦU OUTPUT theo format JSON (bằng {self._get_language_name(language)}):
 {{
   "title": "Tên bánh sáng tạo, hấp dẫn",
   "description": "Mô tả chi tiết 3-4 câu về món bánh, nhấn mạnh hương vị và đặc điểm nổi bật",
@@ -71,28 +71,11 @@ Hãy tạo công thức chi tiết, khả thi cho tiệm bánh nhỏ. Chỉ tr�
             ]
         )
         
-        # Check if response is valid
-        if response.candidates and response.candidates[0].finish_reason == 1:
+        # Prefer response text nếu có
+        if getattr(response, "text", None):
             return response.text
-        else:
-            # Fallback response
-            return """{
-  "title": "Generated Recipe",
-  "description": "A delicious recipe generated for you",
-  "ingredients": [
-    {"name": "flour", "quantity": "200", "unit": "g"},
-    {"name": "sugar", "quantity": "100", "unit": "g"},
-    {"name": "eggs", "quantity": "2", "unit": "pieces"}
-  ],
-  "instructions": [
-    "Step 1: Mix all ingredients together",
-    "Step 2: Bake at 180°C for 25 minutes"
-  ],
-  "prep_time": "15 minutes",
-  "cook_time": "25 minutes",
-  "servings": "4 servings",
-  "difficulty": "easy"
-}"""
+        # Fallback: tạo công thức chi tiết theo ngôn ngữ
+        return self._generate_simple_recipe(trend="từ nguyên liệu", user_segment="general", occasion="hàng ngày", language=language)
     
     def generate_creative_recipe(self, 
                                trend: str,
@@ -111,7 +94,7 @@ NHIỆM VỤ: Tạo công thức bánh ngọt CHI TIẾT và SÁNG TẠO phù h�
 - Đối tượng khách hàng: {user_segment}
 - Dịp/Sự kiện: {occasion or 'hàng ngày'}
 
-YÊU CẦU OUTPUT theo format JSON (bằng tiếng {self._get_language_name(language)}):
+ YÊU CẦU OUTPUT theo format JSON (bằng {self._get_language_name(language)}):
 {{
   "title": "Tên bánh sáng tạo, bắt trend, dễ nhớ",
   "description": "Mô tả chi tiết 4-5 câu về món bánh, nhấn mạnh hương vị, kết cấu và điểm nổi bật",
@@ -151,31 +134,12 @@ Hãy tạo công thức CHI TIẾT, SÁNG TẠO và KHẢ THI cho tiệm bánh n
             ]
         )
         
-        # Check if response is valid
-        if response.candidates and response.candidates[0].finish_reason == 1:
+        if getattr(response, "text", None):
             return response.text
-        else:
-            # Fallback response
-            return """{
-  "title": "Generated Recipe",
-  "description": "A delicious recipe generated for you",
-  "ingredients": [
-    {"name": "flour", "quantity": "200", "unit": "g"},
-    {"name": "sugar", "quantity": "100", "unit": "g"},
-    {"name": "eggs", "quantity": "2", "unit": "pieces"}
-  ],
-  "instructions": [
-    "Step 1: Mix all ingredients together",
-    "Step 2: Bake at 180°C for 25 minutes"
-  ],
-  "prep_time": "15 minutes",
-  "cook_time": "25 minutes",
-  "servings": "4 servings",
-  "difficulty": "easy"
-}"""
+        return self._generate_simple_recipe(trend=trend, user_segment=user_segment, occasion=occasion or "hàng ngày", language=language)
     
     def _get_language_name(self, code: str) -> str:
-        return "Việt" if code == "vi" else "English"
+        return "tiếng Việt" if code == "vi" else "tiếng Anh"
     
     def _generate_simple_recipe(self, trend: str, user_segment: str, occasion: str, language: str) -> str:
         """Generate simple recipe when main generation fails"""

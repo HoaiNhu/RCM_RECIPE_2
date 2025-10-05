@@ -59,14 +59,31 @@ class RecipeGenerationService:
             occasion=occasion,
             language=language
         )
-        
-        return self._parse_recipe_response(recipe_data, language)
+        # Parse, có fallback nếu thiếu dữ liệu
+        return self._parse_recipe_response(
+            recipe_data, language, trend=trend, user_segment=user_segment, occasion=occasion
+        )
     
-    def _parse_recipe_response(self, response: str, language: str) -> Recipe:
-        """Parse model response into Recipe entity using improved parser"""
-        # Use improved parser
+    def _parse_recipe_response(self, response: str, language: str, *, trend: Optional[str] = None, user_segment: Optional[str] = None, occasion: Optional[str] = None) -> Recipe:
+        """Parse model response into Recipe entity using improved parser.
+        Nếu dữ liệu thiếu (title/ingredients/instructions), fallback sinh công thức chi tiết rồi parse lại.
+        """
+        # Parse lần 1
         parsed_data = self.parser.parse_gemini_output(response)
-        
+
+        def _is_incomplete(d: dict) -> bool:
+            return not d.get('ingredients') or not d.get('instructions') or (d.get('title') in [None, '', 'Untitled Recipe'])
+
+        # Fallback: generate simple detailed recipe theo ngôn ngữ yêu cầu
+        if _is_incomplete(parsed_data):
+            fallback_text = self.gemini._generate_simple_recipe(
+                trend=trend or 'bánh ngọt',
+                user_segment=user_segment or 'khách hàng',
+                occasion=occasion or 'hàng ngày',
+                language=language
+            )
+            parsed_data = self.parser.parse_gemini_output(fallback_text)
+
         # Convert ingredients to Ingredient objects
         recipe_ingredients = []
         for ing_data in parsed_data.get('ingredients', []):
@@ -76,7 +93,7 @@ class RecipeGenerationService:
                 unit=ing_data.get('unit'),
                 category=self._categorize_ingredient(ing_data.get('name', ''))
             ))
-        
+
         # Convert difficulty
         difficulty_map = {
             'easy': DifficultyLevel.EASY,
@@ -84,7 +101,7 @@ class RecipeGenerationService:
             'hard': DifficultyLevel.HARD
         }
         difficulty = difficulty_map.get(parsed_data.get('difficulty', 'medium'), DifficultyLevel.MEDIUM)
-        
+
         return Recipe(
             title=parsed_data.get('title', 'Generated Recipe'),
             description=parsed_data.get('description', ''),
@@ -94,8 +111,9 @@ class RecipeGenerationService:
             cook_time=parsed_data.get('cook_time', '25 phút'),
             servings=parsed_data.get('servings', '8 phần'),
             difficulty=difficulty,
-            trend_context=f"Generated from trend",
-            user_segment="general",
+            tags=parsed_data.get('tags', []),
+            trend_context=(f"{trend} | {occasion}" if trend else "Generated from trend"),
+            user_segment=user_segment or 'general',
             language=language
         )
     

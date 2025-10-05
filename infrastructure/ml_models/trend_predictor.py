@@ -20,7 +20,7 @@ class TrendPredictor:
     - Thời tiết, lễ hội
     """
     
-    def __init__(self, model_path: Optional[Path] = None):
+    def __init__(self, model_path: Optional[Path] = None, auto_load: bool = True):
         self.model_path = model_path or Path("data/models")
         self.model_path.mkdir(exist_ok=True, parents=True)
         
@@ -36,6 +36,15 @@ class TrendPredictor:
         # Features được train
         self.feature_columns = []
         self.is_trained = False
+        
+        # Auto-load trained artifacts nếu có
+        if auto_load:
+            try:
+                loaded = self.load_models()
+                if loaded:
+                    self.is_trained = True
+            except Exception as e:
+                print(f"⚠️ Auto-load models failed: {e}")
         
     def load_training_data(self, data_dir: Path) -> pd.DataFrame:
         """Load và merge tất cả dữ liệu training"""

@@ -5,6 +5,9 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from domain.services.context_aware_recipe_service import ContextAwareRecipeService
 from infrastructure.ml_models.trend_predictor import TrendPredictor
+import subprocess
+import sys
+from pathlib import Path
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -38,6 +41,20 @@ class RecipeAnalyticsResponse(BaseModel):
     market_insights: Dict[str, Any]
     success_factors: List[str]
     viral_potential_score: float
+
+class ForecastAndGenerateRequest(BaseModel):
+    user_segment: str
+    horizon_days: int = 30
+    top_k: int = 3
+    include_market_analysis: bool = True
+    location: str = "vietnam"
+    custom_context: Optional[Dict[str, Any]] = None
+
+class ForecastAndGenerateResponse(BaseModel):
+    forecast_window: Dict[str, Any]
+    top_forecasted_events: List[str]
+    trends_summary: Dict[str, Any]
+    recommended_recipes: List[Dict[str, Any]]
 
 class MarketInsightResponse(BaseModel):
     segment_analysis: Dict[str, Any]
@@ -125,6 +142,143 @@ async def predict_future_trends(request: TrendPredictionRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+@router.post("/forecast-and-generate", response_model=ForecastAndGenerateResponse)
+async def forecast_and_generate(request: ForecastAndGenerateRequest):
+    """
+    📈 Dự báo xu hướng trong tương lai gần và tạo danh sách công thức đề xuất.
+    - Dự báo context 4 tuần tới (mặc định 30 ngày)
+    - Chọn ra top sự kiện/xu hướng có tiềm năng cao nhất
+    - Sinh ra recipe đề xuất theo từng sự kiện/xu hướng
+    """
+    try:
+        now = datetime.now()
+        horizon_days = max(7, min(request.horizon_days, 90))
+
+        # Quét từng tuần trong horizon để dự báo
+        weekly_points = []
+        for delta in range(0, horizon_days, 7):
+            target_date = now + timedelta(days=delta)
+            seasonal_ctx, market_ctx = context_service.get_current_context(target_date)
+
+            ml_context = {
+                'month': seasonal_ctx.month,
+                'temperature': seasonal_ctx.temperature,
+                'user_segment': request.user_segment,
+                'season': seasonal_ctx.season,
+                'market_potential': market_ctx.market_potential,
+                'competition_level': market_ctx.competition_level,
+                'bakery_demand': seasonal_ctx.demand_factor
+            }
+            if request.custom_context:
+                ml_context.update(request.custom_context)
+
+            try:
+                preds = trend_predictor.predict_trends(ml_context)
+            except Exception as e:
+                # fallback khi model chưa train
+                preds = {
+                    'popularity_score': 0.65,
+                    'engagement_score': 0.6,
+                    'trend_score': 0.55,
+                    'overall_trend_strength': 0.6
+                }
+
+            weekly_points.append({
+                'date': target_date.strftime("%Y-%m-%d"),
+                'events': seasonal_ctx.events,
+                'trending_flavors': seasonal_ctx.trending_flavors,
+                'overall_trend_strength': preds['overall_trend_strength'],
+                'season': seasonal_ctx.season
+            })
+
+        # Xếp hạng sự kiện theo trend strength trung bình trong horizon
+        event_scores: Dict[str, float] = {}
+        for point in weekly_points:
+            for evt in point['events']:
+                event_scores.setdefault(evt, 0.0)
+                event_scores[evt] += point['overall_trend_strength']
+
+        # Top-k sự kiện
+        top_events = sorted(event_scores.items(), key=lambda x: x[1], reverse=True)
+        top_events = [e for e, _ in top_events[:max(1, request.top_k)]] or ["Regular season"]
+
+        # Sinh công thức đề xuất cho mỗi sự kiện top
+        recommended_recipes = []
+        for evt in top_events:
+            # Lấy ngày đại diện (ngày đầu tiên có evt)
+            rep_date = next((p['date'] for p in weekly_points if evt in p['events']), weekly_points[0]['date'])
+            rep_dt = datetime.strptime(rep_date, "%Y-%m-%d")
+
+            recipe = context_service.generate_context_aware_recipe(
+                user_segment=request.user_segment,
+                target_date=rep_dt,
+                custom_trend=evt.lower() if evt != "Regular season" else None
+            )
+
+            analytics = await _analyze_recipe_performance(recipe, request.user_segment, rep_dt)
+            market_insights = await _get_market_insights(request.user_segment, rep_dt) if request.include_market_analysis else {}
+            viral_score = _calculate_viral_potential(recipe, analytics, market_insights)
+
+            recommended_recipes.append({
+                'event': evt,
+                'date': rep_date,
+                'viral_potential': viral_score,
+                'recipe': recipe.dict(),
+                'analytics': analytics,
+                'market_insights': market_insights
+            })
+
+        response = ForecastAndGenerateResponse(
+            forecast_window={
+                'start': now.strftime("%Y-%m-%d"),
+                'end': (now + timedelta(days=horizon_days)).strftime("%Y-%m-%d"),
+                'points': weekly_points
+            },
+            top_forecasted_events=top_events,
+            trends_summary={
+                'avg_trend_strength': round(sum(p['overall_trend_strength'] for p in weekly_points) / len(weekly_points), 3),
+                'seasons_in_window': sorted(list({p['season'] for p in weekly_points}))
+            },
+            recommended_recipes=recommended_recipes
+        )
+
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecast and generate failed: {str(e)}")
+
+@router.post("/train")
+async def train_models():
+    """
+    🧠 Khởi chạy pipeline huấn luyện ML từ dữ liệu trong data/raw và cập nhật artifacts.
+    Trả về log cơ bản và trạng thái.
+    """
+    try:
+        # Chạy train_models.py bằng python hiện tại
+        project_root = Path(__file__).resolve().parents[2]
+        script_path = project_root / "train_models.py"
+        if not script_path.exists():
+            raise HTTPException(status_code=500, detail="Không tìm thấy train_models.py")
+
+        proc = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
+        success = proc.returncode == 0
+        output = (proc.stdout or "")[-4000:]  # Giới hạn log trả về
+        error = (proc.stderr or "")[-4000:]
+
+        # Reload models nếu train thành công
+        if success:
+            trend_predictor.load_models()
+
+        return {
+            'status': 'success' if success else 'failed',
+            'return_code': proc.returncode,
+            'stdout_tail': output,
+            'stderr_tail': error
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Train failed: {str(e)}")
 
 @router.post("/generate-smart-recipe", response_model=RecipeAnalyticsResponse)
 async def generate_smart_recipe(request: RecipeAnalyticsRequest):

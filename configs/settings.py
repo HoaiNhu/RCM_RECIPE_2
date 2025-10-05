@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     VERSION: str = "2.0.0"
     
     # Model Settings
-    DEFAULT_GEMINI_MODEL: str = "gemini-2.5-flash"
+    DEFAULT_GEMINI_MODEL: str = "gemini-2.5-pro"
     DEFAULT_TEMPERATURE: float = 0.7
     MAX_OUTPUT_TOKENS: int = 4096
 

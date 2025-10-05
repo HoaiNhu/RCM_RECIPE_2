@@ -79,3 +79,6 @@ credentials/
 *.key
 
 data/raw
+
+notebooks/
+tests/

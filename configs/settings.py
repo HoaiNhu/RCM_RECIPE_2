@@ -4,7 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-load_dotenv()
+load_dotenv(ROOT_DIR / ".env")
 
 
 class Settings(BaseSettings):
@@ -29,8 +29,10 @@ class Settings(BaseSettings):
     VERSION: str = "2.0.0"
     
     # Model Settings
-    DEFAULT_GEMINI_MODEL: str = "gemini-1.5-pro"
+    DEFAULT_GEMINI_MODEL: str = "gemini-2.5-flash"
     DEFAULT_TEMPERATURE: float = 0.7
-    MAX_OUTPUT_TOKENS: int = 2048
+    MAX_OUTPUT_TOKENS: int = 4096
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 settings = Settings()

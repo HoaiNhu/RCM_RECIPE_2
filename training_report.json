@@ -1,0 +1,327 @@
+{
+  "training_timestamp": "2025-10-05T12:29:16.503207",
+  "project_info": {
+    "name": "RCM_RECIPE_2",
+    "version": "2.0.0",
+    "description": "AI-powered Recipe Generation with Trend Analysis"
+  },
+  "datasets": {
+    "total_files": 7,
+    "total_rows": 4347,
+    "total_size_mb": 1.12,
+    "details": {
+      "comprehensive_food_preferences_raw_20250920_074528.csv": {
+        "rows": 671,
+        "columns": 16,
+        "size_mb": 0.24,
+        "column_names": [
+          "data_type",
+          "group_or_food_name",
+          "search_keyword",
+          "video_title",
+          "channel_name",
+          "publish_date",
+          "view_count",
+          "like_count",
+          "comment_count",
+          "engagement_rate",
+          "content_type",
+          "description_snippet",
+          "video_id",
+          "video_url",
+          "popularity_score",
+          "trend_strength"
+        ],
+        "missing_values": "247",
+        "numeric_columns": [
+          "view_count",
+          "like_count",
+          "comment_count",
+          "engagement_rate",
+          "popularity_score",
+          "trend_strength"
+        ]
+      },
+      "consumer_groups_detailed_20250921_133329.csv": {
+        "rows": 14,
+        "columns": 16,
+        "size_mb": 0.0,
+        "column_names": [
+          "consumer_group",
+          "total_keywords",
+          "top_5_keywords",
+          "market_potential",
+          "competition_level",
+          "growth_trend",
+          "avg_youtube_views",
+          "avg_engagement_rate",
+          "total_videos_analyzed",
+          "trending_up_keywords",
+          "trending_stable_keywords",
+          "trending_down_keywords",
+          "avg_search_interest",
+          "total_products",
+          "estimated_monthly_revenue",
+          "avg_profit_margin"
+        ],
+        "missing_values": "0",
+        "numeric_columns": [
+          "total_keywords",
+          "avg_youtube_views",
+          "avg_engagement_rate",
+          "total_videos_analyzed",
+          "trending_up_keywords",
+          "trending_stable_keywords",
+          "trending_down_keywords",
+          "avg_search_interest",
+          "total_products",
+          "estimated_monthly_revenue",
+          "avg_profit_margin"
+        ]
+      },
+      "consumer_profiles_20250920_061904.csv": {
+        "rows": 7,
+        "columns": 13,
+        "size_mb": 0.0,
+        "column_names": [
+          "Unnamed: 0",
+          "age_range",
+          "characteristics",
+          "preferred_flavors",
+          "price_sensitivity",
+          "purchase_frequency",
+          "preferred_channels",
+          "search_keywords",
+          "preferred_types",
+          "ingredients_avoid",
+          "ingredients_prefer",
+          "purchase_time",
+          "concerns"
+        ],
+        "missing_values": "39",
+        "numeric_columns": []
+      },
+      "seasonal_trends_20250920_061904.csv": {
+        "rows": 4,
+        "columns": 5,
+        "size_mb": 0.0,
+        "column_names": [
+          "season",
+          "trending_flavors",
+          "popular_occasions",
+          "average_orders",
+          "peak_months"
+        ],
+        "missing_values": "0",
+        "numeric_columns": [
+          "average_orders"
+        ]
+      },
+      "vietnam_seasonal_events_2025.csv": {
+        "rows": 1355,
+        "columns": 34,
+        "size_mb": 0.25,
+        "column_names": [
+          "date",
+          "year",
+          "month",
+          "quarter",
+          "day_of_week",
+          "day_of_month",
+          "day_of_year",
+          "week_of_year",
+          "vietnam_season",
+          "temperature_celsius",
+          "is_rainy",
+          "rainfall_probability",
+          "vietnam_bakery_demand_factor",
+          "cold_drink_demand",
+          "hot_beverage_demand",
+          "ice_cream_cake_demand",
+          "is_vietnam_special_event",
+          "vietnam_event_name",
+          "vietnam_event_type",
+          "vietnam_event_impact",
+          "days_to_next_vn_event",
+          "is_weekend",
+          "is_friday",
+          "is_month_start",
+          "is_month_end",
+          "is_vietnam_school_holiday",
+          "is_vietnam_university_break",
+          "is_tet_holiday_period",
+          "is_summer_vacation_vn",
+          "is_vietnam_payday",
+          "is_bonus_season_vn",
+          "is_shopping_season_vn",
+          "domestic_tourism_factor",
+          "expat_tourism_factor"
+        ],
+        "missing_values": "2092",
+        "numeric_columns": [
+          "year",
+          "month",
+          "quarter",
+          "day_of_week",
+          "day_of_month",
+          "day_of_year",
+          "week_of_year",
+          "temperature_celsius",
+          "rainfall_probability",
+          "vietnam_bakery_demand_factor",
+          "cold_drink_demand",
+          "hot_beverage_demand",
+          "ice_cream_cake_demand",
+          "vietnam_event_impact",
+          "days_to_next_vn_event",
+          "domestic_tourism_factor",
+          "expat_tourism_factor"
+        ]
+      },
+      "vn_calendar_weather_2022-01-01_2025-09-20.csv": {
+        "rows": 1359,
+        "columns": 18,
+        "size_mb": 0.08,
+        "column_names": [
+          "date",
+          "dow",
+          "weekend",
+          "holiday_name",
+          "is_holiday",
+          "special_event",
+          "is_special",
+          "season",
+          "temp_avg",
+          "temp_min",
+          "temp_max",
+          "precip_mm",
+          "snow",
+          "wdir",
+          "wspd",
+          "wpgt",
+          "pres",
+          "tsun"
+        ],
+        "missing_values": "8302",
+        "numeric_columns": [
+          "dow",
+          "weekend",
+          "is_holiday",
+          "is_special",
+          "temp_avg",
+          "temp_min",
+          "temp_max",
+          "precip_mm",
+          "snow",
+          "wdir",
+          "wspd",
+          "wpgt",
+          "pres",
+          "tsun"
+        ]
+      },
+      "youtube_bakery_gaming_trends_cleaned.csv": {
+        "rows": 937,
+        "columns": 28,
+        "size_mb": 0.55,
+        "column_names": [
+          "video_id",
+          "url",
+          "chu_de",
+          "tu_khoa_tim_kiem",
+          "tieu_de",
+          "tac_gia",
+          "mo_ta",
+          "tags",
+          "ngay_dang",
+          "so_ngay_tu_khi_dang",
+          "luot_xem",
+          "luot_thich",
+          "luot_binh_luan",
+          "engagement_rate_%",
+          "muc_do_viral",
+          "nhom_doi_tuong",
+          "do_tuoi",
+          "thuc_pham_phat_hien",
+          "thuc_pham_yeu_thich",
+          "so_loai_thuc_pham",
+          "banh_ngot_phat_hien",
+          "banh_ngot_yeu_thich",
+          "so_loai_banh_ngot",
+          "nhan_vat_anime_game",
+          "diem_noi_tieng",
+          "muc_do_noi_tieng",
+          "game_franchise",
+          "is_gaming_content"
+        ],
+        "missing_values": "4974",
+        "numeric_columns": [
+          "so_ngay_tu_khi_dang",
+          "luot_xem",
+          "luot_thich",
+          "luot_binh_luan",
+          "engagement_rate_%",
+          "so_loai_thuc_pham",
+          "so_loai_banh_ngot",
+          "diem_noi_tieng"
+        ]
+      }
+    }
+  },
+  "models": {
+    "total_trained": 3,
+    "model_files": [
+      "engagement_model.pkl",
+      "feature_columns.pkl",
+      "label_encoders.pkl",
+      "popularity_model.pkl",
+      "scaler.pkl",
+      "trend_classifier.pkl"
+    ],
+    "training_results": {
+      "popularity": {
+        "mae": 0.016437766896731723,
+        "r2": 0.9999500383314225
+      },
+      "engagement": {
+        "mae": 0.07978476158769666,
+        "r2": 0.9666393749337319
+      },
+      "trend_score": {
+        "mae": 0.012000000000000077,
+        "r2": 0.9999971961339402
+      }
+    },
+    "model_types": [
+      "RandomForestRegressor",
+      "GradientBoostingRegressor",
+      "StandardScaler"
+    ]
+  },
+  "features": {
+    "ml_prediction": "Trend strength, popularity, engagement prediction",
+    "context_awareness": "Season, weather, events, user segments",
+    "recipe_generation": "Gemini API with context-enhanced prompts",
+    "analytics_api": "Real-time trend analysis and recommendations"
+  },
+  "data_sources": {
+    "youtube_trends": "Video engagement and viral content analysis",
+    "consumer_behavior": "Segment preferences and market analysis",
+    "seasonal_data": "Weather, events, and seasonal patterns",
+    "market_intelligence": "Competition and growth trends"
+  },
+  "model_capabilities": {
+    "trend_prediction": "Predict viral potential and engagement",
+    "seasonal_adaptation": "Adjust recommendations by season/weather",
+    "segment_targeting": "Personalize for Gen Z, Millennials, Gym, Kids",
+    "context_integration": "Factor in events, temperature, market conditions",
+    "recipe_optimization": "Generate recipes optimized for target context"
+  },
+  "api_endpoints": {
+    "prediction": "/api/v1/analytics/predict-trends",
+    "smart_recipe": "/api/v1/analytics/generate-smart-recipe",
+    "market_insights": "/api/v1/analytics/market-insights/{segment}",
+    "trending_now": "/api/v1/analytics/trending-now",
+    "recommendations": "/api/v1/analytics/segment-recommendations/{segment}"
+  }
+}

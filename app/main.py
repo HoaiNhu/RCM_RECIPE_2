@@ -1,5 +1,6 @@
 # app/main.py
 import sys
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -7,8 +8,18 @@ from dotenv import load_dotenv
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT_DIR))
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from project root
+env_path = ROOT_DIR / ".env"
+print(f"Loading .env from: {env_path}")
+print(f".env exists: {env_path.exists()}")
+
+load_dotenv(env_path)
+
+# Verify env loading
+print("Environment variables loaded:")
+for key in ['GEMINI_API_KEY', 'DATABASE_URL', 'REDIS_URL', 'YOUTUBE_API_KEY']:
+    value = os.getenv(key)
+    print(f"{key}: {'***' if value and 'API' in key else value}")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +27,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from configs.settings import settings
-from app.routers import recipes, trends, segments
+from app.routers import recipes, trends, segments, analytics
 
 # Ensure log directory exists before configuring logging
 settings.LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -61,6 +72,7 @@ app.add_middleware(
 app.include_router(recipes.router, prefix=settings.API_V1_PREFIX)
 app.include_router(trends.router, prefix=settings.API_V1_PREFIX)
 app.include_router(segments.router, prefix=settings.API_V1_PREFIX)
+app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():

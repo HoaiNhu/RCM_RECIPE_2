@@ -40,11 +40,11 @@ class RecipeGenerationService:
         self.parser = RecipeParser()
     
     def generate_from_ingredients(self, ingredients: str, language: str = "vi") -> Recipe:
-        """Generate recipe from ingredients list using Gemini"""
-        # Generate recipe using Gemini
+        """Generate recipe from ingredients list using Gemini (T5 disabled for now)"""
+        # Use Gemini directly for now (T5 has issues)
         recipe_text = self.gemini.generate_recipe_from_ingredients(ingredients, language)
         
-        # Parse and create Recipe object using improved parser
+        # Parse and create Recipe object
         return self._parse_recipe_response(recipe_text, language)
     
     def generate_from_trend(self, 

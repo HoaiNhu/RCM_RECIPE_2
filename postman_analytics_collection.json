@@ -1,0 +1,279 @@
+{
+  "info": {
+    "name": "RCM_RECIPE_2 Analytics API",
+    "description": "Comprehensive testing cho AI Analytics API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Kiểm tra server status"
+      },
+      "response": []
+    },
+    {
+      "name": "API Root Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        },
+        "description": "Lấy thông tin API version và project"
+      },
+      "response": []
+    },
+    {
+      "name": "1. Predict Halloween Trends",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"target_date\": \"2025-10-31\",\n  \"user_segment\": \"gen_z\",\n  \"include_seasonal_factors\": true,\n  \"include_competition_analysis\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/predict-trends",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "predict-trends"]
+        },
+        "description": "Dự đoán xu hướng Halloween cho Gen Z"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Predict Christmas Trends",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"target_date\": \"2025-12-25\",\n  \"user_segment\": \"millennials\",\n  \"include_seasonal_factors\": true,\n  \"include_competition_analysis\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/predict-trends",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "predict-trends"]
+        },
+        "description": "Dự đoán xu hướng Christmas cho Millennials"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Generate Smart Halloween Recipe",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_segment\": \"gen_z\",\n  \"target_date\": \"2025-10-31\",\n  \"trend_keywords\": [\"halloween\", \"spooky\", \"pumpkin\", \"orange\"],\n  \"include_market_analysis\": true,\n  \"preferred_ingredients\": [\"pumpkin\", \"chocolate\", \"orange coloring\"],\n  \"avoid_ingredients\": [\"nuts\"]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/generate-smart-recipe",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "generate-smart-recipe"]
+        },
+        "description": "Tạo công thức bánh Halloween thông minh cho Gen Z"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Generate Valentine Recipe",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_segment\": \"young_adults\",\n  \"target_date\": \"2025-02-14\",\n  \"trend_keywords\": [\"valentine\", \"romantic\", \"heart\", \"red\", \"pink\"],\n  \"include_market_analysis\": true,\n  \"preferred_ingredients\": [\"strawberry\", \"chocolate\", \"cream cheese\"],\n  \"avoid_ingredients\": []\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/generate-smart-recipe",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "generate-smart-recipe"]
+        },
+        "description": "Tạo công thức bánh Valentine cho young adults"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Market Insights - Gym Segment",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/market-insights/gym?target_date=2025-11-01&include_competition=true",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "market-insights", "gym"],
+          "query": [
+            {
+              "key": "target_date",
+              "value": "2025-11-01"
+            },
+            {
+              "key": "include_competition",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Phân tích thị trường cho segment tập gym"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Market Insights - Health Conscious",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/market-insights/health_conscious?target_date=2025-12-01&include_competition=true",
+          "host": ["{{base_url}}"],
+          "path": [
+            "api",
+            "v1",
+            "analytics",
+            "market-insights",
+            "health_conscious"
+          ],
+          "query": [
+            {
+              "key": "target_date",
+              "value": "2025-12-01"
+            },
+            {
+              "key": "include_competition",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Phân tích thị trường cho segment health conscious"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Current Trending Analysis",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/trending-now",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "trending-now"]
+        },
+        "description": "Phân tích xu hướng hiện tại (realtime)"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Segment Recommendations - Kids",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/segment-recommendations/kids",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "segment-recommendations", "kids"]
+        },
+        "description": "Gợi ý sản phẩm cho segment trẻ em"
+      },
+      "response": []
+    },
+    {
+      "name": "9. Segment Recommendations - Gen Z",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analytics/segment-recommendations/gen_z",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analytics", "segment-recommendations", "gen_z"]
+        },
+        "description": "Gợi ý sản phẩm cho segment Gen Z"
+      },
+      "response": []
+    },
+    {
+      "name": "10. Test Existing Recipe API - Ingredients",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredients\": [\"pumpkin\", \"chocolate\", \"cinnamon\"],\n  \"user_segment\": \"gen_z\",\n  \"language\": \"vi\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/recipes/generate-from-ingredients",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "recipes", "generate-from-ingredients"]
+        },
+        "description": "Test existing recipe API với ingredients"
+      },
+      "response": []
+    },
+    {
+      "name": "11. Test Existing Recipe API - Trend",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"trend\": \"halloween pumpkin spice korean style\",\n  \"user_segment\": \"gen_z\",\n  \"occasion\": \"halloween\",\n  \"language\": \"vi\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/recipes/generate-from-trend",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "recipes", "generate-from-trend"]
+        },
+        "description": "Test existing recipe API với trend keywords"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}

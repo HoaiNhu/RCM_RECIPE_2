@@ -1,0 +1,36 @@
+{
+  "seasonal_boost": {
+    "halloween": 0.3,
+    "christmas": 0.4,
+    "valentine": 0.25,
+    "summer": 0.2,
+    "back_to_school": 0.15,
+    "tet": 0.35,
+    "spring": 0.1,
+    "autumn": 0.15,
+    "winter": 0.2
+  },
+  "base_threshold": 0.35,
+  "viral_threshold": 0.75,
+  "trend_multipliers": {
+    "gen_z": 1.3,
+    "millennials": 1.15,
+    "gen_x": 0.95,
+    "baby_boomers": 0.8,
+    "kids": 1.1,
+    "teenagers": 1.25,
+    "young_adults": 1.2,
+    "office_workers": 1.0,
+    "gym_goers": 0.9,
+    "health_conscious": 0.85
+  },
+  "event_boosts": {
+    "halloween": 0.4,
+    "christmas": 0.5,
+    "valentine": 0.3,
+    "tet": 0.45,
+    "birthday": 0.2,
+    "wedding": 0.25,
+    "graduation": 0.2
+  }
+}

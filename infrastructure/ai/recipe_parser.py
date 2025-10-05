@@ -31,19 +31,41 @@ class RecipeParser:
             print(f"JSON parsing failed: {e}")
         
         # Fallback: parse text format
+        print("Falling back to text parsing...")
         return self._parse_text_format(raw_output)
     
     def _extract_json(self, text: str) -> Optional[Dict]:
         """Extract JSON từ text output"""
-        # Tìm JSON block trong text
-        json_pattern = r'\{.*\}'
-        matches = re.findall(json_pattern, text, re.DOTALL)
+        # Loại bỏ markdown code blocks cẩn thận
+        text = text.strip()
         
-        for match in matches:
+        # Remove markdown code blocks
+        text = re.sub(r'```json\s*', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'```\s*$', '', text, flags=re.MULTILINE)
+        text = text.strip()
+        
+        # If text starts with {, try to parse directly
+        if text.startswith('{'):
             try:
-                return json.loads(match)
-            except:
-                continue
+                return json.loads(text)
+            except json.JSONDecodeError:
+                pass
+        
+        # Tìm JSON block trong text
+        json_patterns = [
+            r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',  # Simple nested JSON
+            r'\{.*?\}',  # Simple JSON
+        ]
+        
+        for pattern in json_patterns:
+            matches = re.findall(pattern, text, re.DOTALL)
+            for match in matches:
+                try:
+                    # Clean up the match
+                    clean_match = match.strip()
+                    return json.loads(clean_match)
+                except json.JSONDecodeError:
+                    continue
         
         return None
     

@@ -44,6 +44,7 @@ class T5Client:
                 attention_mask=inputs.get("attention_mask"),
                 max_length=self.max_length,
                 num_beams=self.num_beams,
+                no_repeat_ngram_size=3,  # Prevent repetition
                 early_stopping=True
             )
 

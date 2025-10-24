@@ -63,6 +63,27 @@ class TrendPredictor:
         print(f"- Vietnam events: {len(events_df)} records")
         print(f"- Food preferences: {len(preferences_df)} records")
         
+        # Bakery-only filter: giữ lại các bản ghi có liên quan food/bakery
+        bakery_keywords = ['cake', 'bánh', 'dessert', 'bakery', 'chocolate', 'matcha', 'taro', 'mousse', 'cookie', 'macaron']
+        def _is_bakery_row(row) -> bool:
+            text = ' '.join([
+                str(row.get('chu_de', '')),
+                str(row.get('tu_khoa_tim_kiem', '')),
+                str(row.get('tieu_de', '')),
+                str(row.get('mo_ta', '')),
+                str(row.get('tags', '')),
+                str(row.get('banh_ngot_phat_hien', '')),
+                str(row.get('banh_ngot_yeu_thich', ''))
+            ]).lower()
+            return any(kw in text for kw in bakery_keywords)
+
+        try:
+            before = len(trends_df)
+            trends_df = trends_df[trends_df.apply(_is_bakery_row, axis=1)]
+            print(f"Filtered YouTube trends to bakery-only: {before} -> {len(trends_df)}")
+        except Exception as e:
+            print(f"Warning: bakery filter failed: {e}")
+
         return self._merge_datasets(trends_df, consumer_df, seasonal_df, events_df, preferences_df)
     
     def _merge_datasets(self, trends_df, consumer_df, seasonal_df, events_df, preferences_df) -> pd.DataFrame:
@@ -216,67 +237,73 @@ class TrendPredictor:
         return feature_df[final_features]
     
     def train(self, data_dir: Path):
-        """Train các models"""
+        """Train models với time-based split và shifted targets để tránh leakage"""
         
         print("🚀 Bắt đầu training trend prediction models...")
         
         # Load data
         df = self.load_training_data(data_dir)
-        
-        # Prepare features
-        X = self.prepare_features(df)
-        
-        # Prepare targets
+
+        # Time sort theo ngày đăng nếu có
+        if 'ngay_dang' in df.columns:
+            try:
+                df = df.sort_values('ngay_dang')
+            except Exception:
+                pass
+
+        # Shifted targets t+14 ngày (nếu có day_of_year)
+        df_shift = df.copy()
+        if 'day_of_year' in df_shift.columns:
+            df_shift['day_of_year_shift'] = (df_shift['day_of_year'] + 14) % 366
+        else:
+            df_shift['day_of_year_shift'] = 0
+
+        # Targets (không dùng các cột target thô như feature)
         targets = {}
-        if 'luot_xem' in df.columns:
-            targets['popularity'] = np.log1p(df['luot_xem'])  # Log transform
-        if 'engagement_rate_%' in df.columns:
-            targets['engagement'] = df['engagement_rate_%']
-        if 'diem_noi_tieng' in df.columns:
-            targets['trend_score'] = df['diem_noi_tieng']
-        
-        # Scale features
-        X_scaled = self.scaler.fit_transform(X)
-        
-        # Train models
+        if 'luot_xem' in df_shift.columns:
+            targets['popularity'] = np.log1p(df_shift['luot_xem'])
+        if 'engagement_rate_%' in df_shift.columns:
+            targets['engagement'] = df_shift['engagement_rate_%']
+        if 'diem_noi_tieng' in df_shift.columns:
+            targets['trend_score'] = df_shift['diem_noi_tieng']
+
+        # Prepare features (drop direct target columns để giảm leakage)
+        X = self.prepare_features(df_shift)
+        for leak_col in ['luot_xem', 'diem_noi_tieng', 'engagement_rate_%']:
+            if leak_col in self.feature_columns:
+                self.feature_columns.remove(leak_col)
+                X = X.drop(columns=[leak_col], errors='ignore')
+
+        # Time-based split: 80% đầu làm train, 20% cuối làm test
+        split_idx = int(len(X) * 0.8)
+        X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+
+        # Fit scaler trên train
+        X_train_scaled = self.scaler.fit_transform(X_train)
+        X_test_scaled = self.scaler.transform(X_test)
+
+        # Train và evaluate
         results = {}
-        
         for target_name, y in targets.items():
-            print(f"\n📊 Training {target_name} model...")
-            
-            # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
-                X_scaled, y, test_size=0.2, random_state=42
-            )
-            
-            # Select model
+            print(f"\n📊 Training {target_name} model (time-based split)...")
+            y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
+
             if target_name == 'popularity':
                 model = self.popularity_model
             elif target_name == 'engagement':
                 model = self.engagement_model
             else:
                 model = self.trend_classifier
-            
-            # Train
-            model.fit(X_train, y_train)
-            
-            # Evaluate
-            y_pred = model.predict(X_test)
+
+            model.fit(X_train_scaled, y_train)
+            y_pred = model.predict(X_test_scaled)
             mae = mean_absolute_error(y_test, y_pred)
             r2 = r2_score(y_test, y_pred)
-            
             results[target_name] = {'mae': mae, 'r2': r2}
             print(f"✅ {target_name} - MAE: {mae:.4f}, R²: {r2:.4f}")
-        
+
         self.is_trained = True
-        
-        # Save models
         self.save_models()
-        
-        print(f"\n🎉 Training completed! Results:")
-        for target, metrics in results.items():
-            print(f"  {target}: MAE={metrics['mae']:.4f}, R²={metrics['r2']:.4f}")
-        
         return results
     
     def predict_trends(self, context: Dict) -> Dict:
@@ -285,11 +312,15 @@ class TrendPredictor:
         if not self.is_trained:
             raise ValueError("Model chưa được train! Gọi train() trước.")
         
-        # Tạo feature vector từ context
+        # Tạo feature vector từ context (chuẩn theo feature_columns)
         feature_vector = self._context_to_features(context)
-        
+
+        # Biến thành DataFrame với tên cột đúng để tránh cảnh báo
+        import pandas as pd
+        feature_df = pd.DataFrame([feature_vector], columns=self.feature_columns)
+
         # Scale features
-        feature_vector_scaled = self.scaler.transform([feature_vector])
+        feature_vector_scaled = self.scaler.transform(feature_df)
         
         # Predict
         predictions = {}
@@ -329,18 +360,33 @@ class TrendPredictor:
             'growth_trend_score': context.get('growth_trend', 1.0)
         }
         
-        # Categorical mappings
-        if 'user_segment' in context:
-            segment_encoded = context['user_segment']
-            if 'nhom_doi_tuong_encoded' in self.feature_columns:
-                idx = self.feature_columns.index('nhom_doi_tuong_encoded')
-                features[idx] = segment_encoded
+        # Categorical mappings: encode an toàn nếu có label_encoders, tránh đưa chuỗi vào scaler
+        if 'nhom_doi_tuong_encoded' in self.feature_columns:
+            idx = self.feature_columns.index('nhom_doi_tuong_encoded')
+            value = context.get('user_segment')
+            try:
+                encoder = self.label_encoders.get('nhom_doi_tuong')
+                if encoder is not None and value is not None:
+                    # Nếu giá trị chưa thấy trong encoder, dùng giá trị phổ biến 0
+                    if value not in list(encoder.classes_):
+                        features[idx] = 0
+                    else:
+                        features[idx] = float(encoder.transform([value])[0])
+            except Exception:
+                features[idx] = 0
         
-        if 'season' in context:
-            season_encoded = context['season']
-            if 'season_encoded' in self.feature_columns:
-                idx = self.feature_columns.index('season_encoded')
-                features[idx] = season_encoded
+        if 'season_encoded' in self.feature_columns:
+            idx = self.feature_columns.index('season_encoded')
+            value = context.get('season')
+            try:
+                encoder = self.label_encoders.get('season')
+                if encoder is not None and value is not None:
+                    if value not in list(encoder.classes_):
+                        features[idx] = 0
+                    else:
+                        features[idx] = float(encoder.transform([value])[0])
+            except Exception:
+                features[idx] = 0
         
         # Fill in mapped features
         for feature_name, value in feature_mapping.items():

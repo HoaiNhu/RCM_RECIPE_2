@@ -1,5 +1,5 @@
 # app/routers/recipes.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 from application.use_cases.generate_personalized_recipe_use_case import GeneratePersonalizedRecipeUseCase
@@ -10,6 +10,7 @@ use_case = GeneratePersonalizedRecipeUseCase()
 class IngredientsRequest(BaseModel):
     ingredients: str
     language: str = "vi"
+    use_t5: bool = True  # Enable T5 by default
 
 class TrendRequest(BaseModel):
     trend: str
@@ -19,11 +20,18 @@ class TrendRequest(BaseModel):
 
 @router.post("/generate-from-ingredients")
 async def generate_from_ingredients(request: IngredientsRequest):
-    """Generate recipe from ingredients list"""
+    """
+    Generate recipe from ingredients list.
+    
+    Supports two modes:
+    - T5 Mode (use_t5=true): Vietnamese → T5 → Gemini Translation
+    - Gemini Mode (use_t5=false): Direct Gemini generation
+    """
     try:
         result = use_case.execute_from_ingredients(
             ingredients=request.ingredients,
-            language=request.language
+            language=request.language,
+            use_t5=request.use_t5
         )
         return result
     except Exception as e:

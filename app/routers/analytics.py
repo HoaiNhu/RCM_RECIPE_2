@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from domain.services.context_aware_recipe_service import ContextAwareRecipeService
+from domain.services.recipe_generation_service import RecipeGenerationService
 from infrastructure.ml_models.trend_predictor import TrendPredictor
 import subprocess
 import sys
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 # Initialize services
 context_service = ContextAwareRecipeService()
 trend_predictor = TrendPredictor()
+recipe_service = RecipeGenerationService()
 
 class TrendPredictionRequest(BaseModel):
     target_date: Optional[str] = None  # Format: "2025-10-31"
@@ -203,28 +205,34 @@ async def forecast_and_generate(request: ForecastAndGenerateRequest):
         top_events = sorted(event_scores.items(), key=lambda x: x[1], reverse=True)
         top_events = [e for e, _ in top_events[:max(1, request.top_k)]] or ["Regular season"]
 
-        # Sinh công thức đề xuất cho mỗi sự kiện top
+        # Sinh công thức đề xuất cho mỗi sự kiện top bằng pipeline Gemini generate-from-trend
         recommended_recipes = []
         for evt in top_events:
             # Lấy ngày đại diện (ngày đầu tiên có evt)
             rep_date = next((p['date'] for p in weekly_points if evt in p['events']), weekly_points[0]['date'])
             rep_dt = datetime.strptime(rep_date, "%Y-%m-%d")
 
-            recipe = context_service.generate_context_aware_recipe(
+            # Kết hợp trend string từ event + flavors
+            seasonal_ctx, _ = context_service.get_current_context(rep_dt)
+            trend_text = " ".join([evt] + (seasonal_ctx.trending_flavors[:3] if seasonal_ctx.trending_flavors else [])) if evt != "Regular season" else " ".join(seasonal_ctx.trending_flavors[:3] or [])
+
+            # Gọi pipeline generate-from-trend (Gemini) để tạo recipe chi tiết tiếng Việt
+            gen_recipe = recipe_service.generate_from_trend(
+                trend=trend_text.strip() or "seasonal",
                 user_segment=request.user_segment,
-                target_date=rep_dt,
-                custom_trend=evt.lower() if evt != "Regular season" else None
+                occasion=evt if evt != "Regular season" else seasonal_ctx.season,
+                language='vi'
             )
 
-            analytics = await _analyze_recipe_performance(recipe, request.user_segment, rep_dt)
+            analytics = await _analyze_recipe_performance(gen_recipe, request.user_segment, rep_dt)
             market_insights = await _get_market_insights(request.user_segment, rep_dt) if request.include_market_analysis else {}
-            viral_score = _calculate_viral_potential(recipe, analytics, market_insights)
+            viral_score = _calculate_viral_potential(gen_recipe, analytics, market_insights)
 
             recommended_recipes.append({
                 'event': evt,
                 'date': rep_date,
                 'viral_potential': viral_score,
-                'recipe': recipe.dict(),
+                'recipe': gen_recipe.dict(),
                 'analytics': analytics,
                 'market_insights': market_insights
             })
@@ -542,13 +550,14 @@ def _score_ingredient_alignment(ingredients, trending_flavors) -> float:
         return 0.5
     
     alignment_count = 0
-    for ingredient in ingredients:
+    total = max(len(ingredients or []), 1)
+    for ingredient in ingredients or []:
         for flavor in trending_flavors:
             if flavor.lower() in ingredient.name.lower():
                 alignment_count += 1
                 break
     
-    return min(alignment_count / len(ingredients), 1.0)
+    return min(alignment_count / total, 1.0)
 
 def _score_timing_alignment(target_date: datetime, seasonal_ctx) -> float:
     """Score timing alignment với seasonal context"""

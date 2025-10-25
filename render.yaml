@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: rcm-recipe-api
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: PORT
+        value: 8000

@@ -1,0 +1,64 @@
+name: Keep Service Alive
+
+on:
+  schedule:
+    # Chạy mỗi 5 phút (*/5 * * * *)
+    # Hoặc mỗi 10 phút (*/10 * * * *)
+    # Render free tier spin down sau 15 phút, nên ping mỗi 5-10 phút là an toàn
+    - cron: "*/5 * * * *"
+
+  # Cho phép chạy workflow thủ công từ GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Render Service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Ping /ping endpoint
+        run: |
+          echo "🔔 Pinging service to keep it alive..."
+          echo "Time: $(date)"
+
+          # Thay YOUR_SERVICE_URL bằng URL thực của bạn
+          # Ví dụ: https://rcm-recipe-api.onrender.com
+          SERVICE_URL="${{ secrets.RENDER_SERVICE_URL || 'https://your-service.onrender.com' }}"
+
+          # Ping endpoint
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/ping")
+
+          echo "Response Code: $RESPONSE"
+
+          # Kiểm tra response code
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "✅ Ping successful!"
+          else
+            echo "❌ Ping failed with code: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Check health status
+        run: |
+          echo "🏥 Checking service health..."
+
+          SERVICE_URL="${{ secrets.RENDER_SERVICE_URL || 'https://your-service.onrender.com' }}"
+
+          # Get health status
+          curl -s "$SERVICE_URL/health" | jq '.'
+
+          echo "✅ Health check complete!"
+        continue-on-error: true
+
+      - name: Log ping activity
+        run: |
+          echo "📊 Ping Activity Summary"
+          echo "------------------------"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Service: ${{ secrets.RENDER_SERVICE_URL || 'Not configured' }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run Number: ${{ github.run_number }}"
+          echo "------------------------"

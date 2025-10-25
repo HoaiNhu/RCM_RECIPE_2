@@ -85,7 +85,28 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """
+    Health check endpoint for Render.
+    Responds with 200 status to indicate service is running.
+    """
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION
+    }
+
+@app.get("/ping")
+async def ping():
+    """
+    Ping endpoint to keep the service alive.
+    This endpoint should be called every 5 minutes to prevent
+    Render from spinning down the free tier service after 15 minutes of inactivity.
+    """
+    return {
+        "status": "pong",
+        "message": "Service is alive",
+        "timestamp": __import__("datetime").datetime.now().isoformat()
+    }
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,31 @@
+# requirements-minimal.txt
+# Lightweight version - Only Gemini API, no PyTorch/Transformers
+
+# Core API Framework
+fastapi==0.111.0
+uvicorn[standard]==0.30.0
+pydantic==2.7.1
+pydantic-settings==2.2.1
+
+# Google Gemini AI (main AI provider)
+google-generativeai==0.5.2
+
+# Environment & Configuration
+python-dotenv==1.0.1
+
+# Database & Caching (optional)
+redis==5.0.1
+sqlalchemy==2.0.29
+
+# Task Queue
+celery==5.3.4
+
+# HTTP Client
+requests==2.31.0
+
+# Basic Data Science (lighter versions)
+pandas==2.2.0
+numpy==1.24.3
+
+# Analytics (optional - remove if not needed)
+plotly==5.17.0

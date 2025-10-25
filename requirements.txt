@@ -1,15 +1,15 @@
-# requirements.txt
+# requirements.txt - Optimized for Render deployment
 # Core API Framework
 fastapi==0.111.0
 uvicorn[standard]==0.30.0
 pydantic==2.7.1
 pydantic-settings==2.2.1
 
-# AI/ML Core
-transformers==4.40.0
-torch==2.6.0
+# AI/ML Core - PyTorch will be installed separately in Dockerfile
+# torch==2.6.0  # Installed separately with CPU-only version
+# transformers==4.40.0  # Installed separately
+# sentencepiece==0.1.99  # Installed separately
 google-generativeai==0.5.2
-sentencepiece==0.1.99
 
 # Environment & Configuration
 python-dotenv==1.0.1

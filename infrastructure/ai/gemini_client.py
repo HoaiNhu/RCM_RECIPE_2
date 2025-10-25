@@ -86,38 +86,107 @@ Hãy tạo công thức chi tiết, khả thi cho tiệm bánh nhỏ. Chỉ tr�
         self._ensure_config()
         model = genai.GenerativeModel(self.model)
         
+        # Map user segments to detailed descriptions
+        segment_profiles = {
+            "gen_z": "Gen Z (18-25 tuổi): thích màu sắc rực rỡ, Instagram-worthy, viral trên TikTok, quan tâm đến giá cả hợp lý",
+            "millennials": "Millennials (26-40 tuổi): quan tâm đến chất lượng nguyên liệu organic, thiết kế tinh tế, sẵn sàng trả giá cao hơn cho sản phẩm premium",
+            "gym": "Gym Enthusiast: ưu tiên high protein, low carb, low sugar, healthy ingredients, cần thông tin dinh dưỡng rõ ràng",
+            "kids": "Trẻ em & Phụ huynh: an toàn thực phẩm, màu sắc tươi sáng, hình dáng dễ thương, vị ngọt vừa phải, không chất bảo quản",
+            "health": "Sức khỏe: organic, ít đường, không gluten (nếu có thể), nguyên liệu tự nhiên, tốt cho tiêu hóa"
+        }
+        
+        segment_desc = segment_profiles.get(user_segment, f"Khách hàng {user_segment}")
+        
         prompt = f"""
-Bạn là một đầu bếp bánh ngọt chuyên nghiệp và chuyên gia marketing với 10+ năm kinh nghiệm.
+Bạn là BÀ TRẦN KIM CHI - Đầu bếp bánh ngọt 15 năm kinh nghiệm, từng làm việc tại Pháp, chuyên gia tư vấn cho hơn 200 tiệm bánh tại Việt Nam.
 
-NHIỆM VỤ: Tạo công thức bánh ngọt CHI TIẾT và SÁNG TẠO phù hợp với:
-- Xu hướng (Trend): {trend}
-- Đối tượng khách hàng: {user_segment}
-- Dịp/Sự kiện: {occasion or 'hàng ngày'}
+════════════════════════════════════════════════════════════
+🎯 NHIỆM VỤ: Tạo công thức bánh ngọt SÁNG TẠO & KHẢ THI
+════════════════════════════════════════════════════════════
 
- YÊU CẦU OUTPUT theo format JSON (bằng {self._get_language_name(language)}):
+📊 THÔNG TIN ĐẦU VÀO:
+├─ Xu hướng (Trend): {trend}
+├─ Đối tượng khách hàng: {segment_desc}
+└─ Dịp/Sự kiện: {occasion or 'bán hàng ngày'}
+
+════════════════════════════════════════════════════════════
+✅ YÊU CẦU CÔNG THỨC (bằng {self._get_language_name(language)}):
+════════════════════════════════════════════════════════════
+
+1. TÊN BÁNH:
+   - Sáng tạo, bắt trend {trend}
+   - Dễ nhớ, dễ đọc, viral được trên mạng xã hội
+   - Gợi lên cảm xúc và sự tò mò
+
+2. MÔ TẢ:
+   - 3-4 câu SINH ĐỘNG về món bánh
+   - Nhấn mạnh: hương vị, kết cấu, điểm độc đáo
+   - Kết nối cảm xúc với {segment_desc}
+   - Tạo sự hấp dẫn để khách muốn mua ngay
+
+3. NGUYÊN LIỆU:
+   - Danh sách CHI TIẾT, CHÍNH XÁC
+   - Định lượng CỤ THỂ (gram, ml, muỗng)
+   - Ưu tiên nguyên liệu DỄ TÌM tại Việt Nam
+   - Phù hợp với đối tượng {user_segment}
+
+4. CÁCH LÀM:
+   - Hướng dẫn TỪNG BƯỚC rõ ràng, dễ hiểu
+   - Bao gồm: nhiệt độ, thời gian, kỹ thuật cụ thể
+   - Thêm TIPS nhỏ trong mỗi bước để thành công
+   - Phù hợp cho tiệm bánh nhỏ (không cần máy móc phức tạp)
+
+5. TRANG TRÍ:
+   - Gợi ý trang trí phù hợp với trend {trend}
+   - Dễ thực hiện, đẹp mắt, Instagram-worthy
+   - Tối ưu cho {segment_desc}
+
+6. CAPTION FACEBOOK:
+   - 2-3 câu VIRAL, thu hút
+   - Sử dụng emoji phù hợp
+   - Có call-to-action rõ ràng
+   - Kèm 3-5 hashtag trending
+
+════════════════════════════════════════════════════════════
+📋 FORMAT OUTPUT - JSON:
+════════════════════════════════════════════════════════════
+
 {{
-  "title": "Tên bánh sáng tạo, bắt trend, dễ nhớ",
-  "description": "Mô tả chi tiết 4-5 câu về món bánh, nhấn mạnh hương vị, kết cấu và điểm nổi bật",
+  "title": "Tên Bánh Sáng Tạo Bắt Trend",
+  "description": "Mô tả sinh động, hấp dẫn, kết nối cảm xúc. Nhấn mạnh hương vị độc đáo và lý do khách hàng {user_segment} sẽ yêu thích món này. Tạo sự tò mò và mong muốn được thử.",
   "ingredients": [
-    {{"name": "tên nguyên liệu", "quantity": "số lượng", "unit": "đơn vị"}},
-    {{"name": "tên nguyên liệu", "quantity": "số lượng", "unit": "đơn vị"}}
+    {{"name": "tên nguyên liệu chính xác", "quantity": "số lượng cụ thể", "unit": "đơn vị (g/ml/muỗng)"}},
+    {{"name": "ví dụ: bột mì đa dụng", "quantity": "250", "unit": "g"}},
+    {{"name": "ví dụ: đường cát trắng", "quantity": "120", "unit": "g"}}
   ],
   "instructions": [
-    "Bước 1: Hướng dẫn chi tiết từng bước với lưu ý kỹ thuật",
-    "Bước 2: Hướng dẫn chi tiết từng bước với lưu ý kỹ thuật",
-    "Bước 3: Hướng dẫn chi tiết từng bước với lưu ý kỹ thuật"
+    "Bước 1: Hướng dẫn chi tiết với nhiệt độ/thời gian cụ thể. Lưu ý kỹ thuật quan trọng.",
+    "Bước 2: Tiếp tục hướng dẫn rõ ràng. Tips để thành công.",
+    "Bước 3: Các bước tiếp theo với thông tin đầy đủ..."
   ],
-  "prep_time": "thời gian chuẩn bị chi tiết (bao gồm cả thời gian chờ)",
-  "cook_time": "thời gian nướng chi tiết với nhiệt độ cụ thể", 
-  "servings": "số phần ăn",
-  "difficulty": "easy/medium/hard",
-  "tags": ["tag1", "tag2", "tag3", "tag4"],
-  "decoration_tips": "Gợi ý trang trí chi tiết phù hợp với trend và đối tượng khách hàng",
-  "marketing_caption": "Caption Facebook viral dài 2-3 câu để đăng bán, có hashtag",
-  "notes": "Lưu ý quan trọng khi làm bánh, tips thành công"
+  "prep_time": "X phút/giờ (ghi rõ từng phần: chuẩn bị, ủ, làm lạnh...)",
+  "cook_time": "X phút ở Y°C (ghi rõ: nướng/hấp/làm lạnh, nhiệt độ chính xác)",
+  "servings": "X-Y người / Z phần (cụ thể)",
+  "difficulty": "easy/medium/hard (đánh giá thực tế)",
+  "tags": ["#{trend}", "#{user_segment}", "thêm 2-3 tags liên quan"],
+  "decoration_tips": "Gợi ý trang trí CỤ THỂ phù hợp với {trend}. Hướng dẫn ngắn gọn cách làm. Màu sắc/họa tiết phù hợp với {segment_desc}.",
+  "marketing_caption": "🎂 Caption viral 2-3 câu với emoji! Tạo cảm giác FOMO. Có call-to-action. #Hashtag1 #Hashtag2 #Hashtag3",
+  "notes": "Lưu ý QUAN TRỌNG để bánh thành công. Tips tránh lỗi thường gặp. Cách bảo quản và thời hạn sử dụng."
 }}
 
-Hãy tạo công thức CHI TIẾT, SÁNG TẠO và KHẢ THI cho tiệm bánh nhỏ. Chỉ trả về JSON, không thêm text khác.
+════════════════════════════════════════════════════════════
+⚠️ LƯU Ý QUAN TRỌNG:
+════════════════════════════════════════════════════════════
+✓ Công thức PHẢI khả thi cho tiệm bánh nhỏ
+✓ Nguyên liệu dễ tìm tại Việt Nam
+✓ Không cần máy móc đắt tiền, phức tạp
+✓ Thời gian làm hợp lý (không quá 4-5 giờ)
+✓ Chi phí nguyên liệu hợp lý với đối tượng
+✓ An toàn thực phẩm, không dùng chất cấm
+
+════════════════════════════════════════════════════════════
+
+CHỈ TRẢ VỀ JSON, KHÔNG THÊM TEXT KHÁC.
 """
         
         response = model.generate_content(

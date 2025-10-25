@@ -261,12 +261,27 @@ Chỉ trả về JSON, không thêm text khác.
                 ]
             )
             
-            if hasattr(response, 'text') and response.text:
-                return response.text
-            else:
-                # Fallback: parse T5 text and translate
-                print("⚠️ Gemini response empty, parsing T5 output directly...")
-                return self._parse_and_translate_t5_text(t5_text, ingredients)
+            # Xử lý response an toàn
+            try:
+                # Cách 1: Thử truy cập text trực tiếp
+                if hasattr(response, 'text') and response.text:
+                    return response.text
+            except ValueError as ve:
+                # Cách 2: Nếu response phức tạp, truy cập qua parts
+                print(f"⚠️ Response không phải simple text, extracting từ parts...")
+                if response.candidates and len(response.candidates) > 0:
+                    candidate = response.candidates[0]
+                    if candidate.content and candidate.content.parts:
+                        # Ghép tất cả text parts lại
+                        text_parts = [part.text for part in candidate.content.parts if hasattr(part, 'text')]
+                        if text_parts:
+                            return ''.join(text_parts)
+                
+                print(f"⚠️ Không thể extract text từ response: {ve}")
+            
+            # Fallback: parse T5 text and translate
+            print("⚠️ Gemini response empty hoặc bị block, parsing T5 output directly...")
+            return self._parse_and_translate_t5_text(t5_text, ingredients)
                 
         except Exception as e:
             print(f"⚠️ Gemini enhancement failed: {e}")
@@ -329,10 +344,26 @@ Return only JSON, no additional text.
                 ]
             )
             
-            if hasattr(response, 'text') and response.text:
-                return response.text
-            else:
-                return t5_text
+            # Xử lý response an toàn
+            try:
+                # Cách 1: Thử truy cập text trực tiếp
+                if hasattr(response, 'text') and response.text:
+                    return response.text
+            except ValueError as ve:
+                # Cách 2: Nếu response phức tạp, truy cập qua parts
+                print(f"⚠️ Response không phải simple text, extracting từ parts...")
+                if response.candidates and len(response.candidates) > 0:
+                    candidate = response.candidates[0]
+                    if candidate.content and candidate.content.parts:
+                        # Ghép tất cả text parts lại
+                        text_parts = [part.text for part in candidate.content.parts if hasattr(part, 'text')]
+                        if text_parts:
+                            return ''.join(text_parts)
+                
+                print(f"⚠️ Không thể extract text từ response: {ve}")
+            
+            # Fallback: return T5 text
+            return t5_text
                 
         except Exception as e:
             print(f"⚠️ Gemini enhancement failed: {e}")

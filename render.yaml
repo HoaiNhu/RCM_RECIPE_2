@@ -4,7 +4,7 @@ services:
     runtime: docker
     region: singapore
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.minimal  # Using minimal version to avoid OOM
     dockerContext: .
     healthCheckPath: /health
     envVars:

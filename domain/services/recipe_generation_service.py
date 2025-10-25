@@ -1,12 +1,22 @@
 # domain/services/recipe_generation_service.py
 from typing import Dict, List, Optional, Tuple
 import re
+import os
 from domain.entities.recipe import Recipe, DifficultyLevel
 from domain.entities.ingredient import Ingredient
 from infrastructure.ai.gemini_client import GeminiClient
 from infrastructure.ai.translator_service import TranslatorService
 from infrastructure.ai.recipe_parser import RecipeParser
-from infrastructure.external.t5_client import T5Client
+
+# Only import T5Client if PyTorch is available
+try:
+    from infrastructure.external.t5_client import T5Client
+    T5_AVAILABLE = True
+except (ImportError, ModuleNotFoundError) as e:
+    print(f"⚠️ T5 dependencies not available: {e}")
+    print("   Running in Gemini-only mode")
+    T5_AVAILABLE = False
+    T5Client = None
 
 
 QUANTITY_UNIT_PATTERN = re.compile(
@@ -39,16 +49,27 @@ class RecipeGenerationService:
         self.gemini = GeminiClient()
         self.translator = TranslatorService()
         self.parser = RecipeParser()
-        self.use_t5 = use_t5
         
-        # Initialize T5 client nếu được enable
-        if self.use_t5:
-            try:
-                self.t5_client = T5Client()
-                print("✅ T5 Model initialized successfully")
-            except Exception as e:
-                print(f"⚠️ T5 Model initialization failed: {e}")
-                print("   Falling back to Gemini-only mode")
+        # Disable T5 if not available
+        if not T5_AVAILABLE:
+            self.use_t5 = False
+            self.t5_client = None
+            print("ℹ️ T5 Model not available - using Gemini-only mode")
+        else:
+            self.use_t5 = use_t5
+            
+            # Initialize T5 client nếu được enable
+            if self.use_t5:
+                try:
+                    self.t5_client = T5Client()
+                    print("✅ T5 Model initialized successfully")
+                except Exception as e:
+                    print(f"⚠️ T5 Model initialization failed: {e}")
+                    print("   Falling back to Gemini-only mode")
+                    self.use_t5 = False
+                    self.t5_client = None
+            else:
+                self.t5_client = None
                 self.use_t5 = False
                 self.t5_client = None
         else:

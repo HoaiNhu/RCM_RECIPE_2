@@ -3,6 +3,7 @@
 ## ✅ ĐÃ FIX: Timeout Issue
 
 ### Thay Đổi:
+
 - ✅ Dockerfile optimized với CPU-only PyTorch
 - ✅ Increased timeout settings
 - ✅ Split installation thành nhiều layers
@@ -13,16 +14,19 @@
 ## 🎯 DEPLOY NGAY (3 Bước)
 
 ### Bước 1: Push Code (30 giây)
+
 ```powershell
 git push origin main
 ```
 
 ### Bước 2: Render Sẽ Auto-Deploy (10-15 phút)
+
 - Render tự động phát hiện changes
 - Build Docker image mới
 - Deploy service
 
 ### Bước 3: Kiểm Tra (1 phút)
+
 ```bash
 # Health check
 curl https://your-service.onrender.com/health
@@ -36,6 +40,7 @@ curl https://your-service.onrender.com/ping
 ## 📊 Hai Tùy Chọn Deploy
 
 ### Option 1: FULL VERSION (Khuyến Nghị)
+
 **Sử dụng**: Dockerfile (default)
 **Bao gồm**: PyTorch CPU, Transformers, Full ML stack
 **Build time**: ~10-15 phút
@@ -45,6 +50,7 @@ curl https://your-service.onrender.com/ping
 ✅ **Đã được setup sẵn trong render.yaml**
 
 ### Option 2: LIGHTWEIGHT VERSION (Nhanh Hơn)
+
 **Sử dụng**: Dockerfile.minimal
 **Bao gồm**: Chỉ Gemini API, không có PyTorch
 **Build time**: ~3-5 phút
@@ -52,17 +58,20 @@ curl https://your-service.onrender.com/ping
 **Use case**: Chỉ dùng Gemini API
 
 #### Để Sử Dụng Minimal Version:
+
 **Cách 1 - Update render.yaml:**
+
 ```yaml
 services:
   - type: web
     name: rcm-recipe-api
     runtime: docker
-    dockerfilePath: ./Dockerfile.minimal  # Thay đổi ở đây
+    dockerfilePath: ./Dockerfile.minimal # Thay đổi ở đây
     dockerContext: .
 ```
 
 **Cách 2 - Trên Render Dashboard:**
+
 1. Go to Service Settings
 2. Build & Deploy section
 3. Dockerfile Path: `./Dockerfile.minimal`
@@ -74,11 +83,13 @@ services:
 ## 🔍 Monitor Build Progress
 
 ### Trên Render Dashboard:
+
 1. Go to your service
 2. Click "Logs" tab
 3. Xem real-time build logs
 
 ### Các Bước Build Sẽ Thấy:
+
 ```
 ✅ Building Docker image...
 ✅ Installing pip packages...
@@ -94,23 +105,26 @@ services:
 
 ## ⏱️ Timeline Ước Tính
 
-| Giai Đoạn | Thời Gian | Mô Tả |
-|-----------|-----------|-------|
-| Git Push | 10-30s | Upload code to GitHub |
-| Render Detect | 10-30s | Render phát hiện changes |
-| Docker Build | 8-12 min | Build image với PyTorch CPU |
-| Deploy | 1-2 min | Start containers |
-| **TOTAL** | **10-15 min** | Tổng thời gian deploy |
+| Giai Đoạn     | Thời Gian     | Mô Tả                       |
+| ------------- | ------------- | --------------------------- |
+| Git Push      | 10-30s        | Upload code to GitHub       |
+| Render Detect | 10-30s        | Render phát hiện changes    |
+| Docker Build  | 8-12 min      | Build image với PyTorch CPU |
+| Deploy        | 1-2 min       | Start containers            |
+| **TOTAL**     | **10-15 min** | Tổng thời gian deploy       |
 
 ---
 
 ## ✅ Kiểm Tra Sau Deploy
 
 ### 1. Service Status
+
 ```bash
 curl https://your-service.onrender.com/
 ```
+
 **Expected:**
+
 ```json
 {
   "name": "RCM Recipe Generator",
@@ -121,10 +135,13 @@ curl https://your-service.onrender.com/
 ```
 
 ### 2. Health Check
+
 ```bash
 curl https://your-service.onrender.com/health
 ```
+
 **Expected:**
+
 ```json
 {
   "status": "healthy",
@@ -134,7 +151,9 @@ curl https://your-service.onrender.com/health
 ```
 
 ### 3. API Docs
+
 Truy cập: `https://your-service.onrender.com/docs`
+
 - Swagger UI hiển thị tất cả endpoints
 - Test API ngay trên browser
 
@@ -143,7 +162,9 @@ Truy cập: `https://your-service.onrender.com/docs`
 ## 🆘 Nếu Vẫn Gặp Lỗi
 
 ### Scenario 1: Build Vẫn Timeout
+
 **Giải pháp**: Sử dụng Dockerfile.minimal
+
 ```powershell
 # Update render.yaml
 # Change dockerfilePath to ./Dockerfile.minimal
@@ -153,14 +174,18 @@ git push
 ```
 
 ### Scenario 2: Out of Memory
+
 **Giải pháp**: Free tier chỉ có 512MB RAM
+
 ```yaml
 # In render.yaml, reduce workers:
 startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
 ```
 
 ### Scenario 3: Build Successful But Service Crashes
+
 **Check**:
+
 1. Logs trong Render dashboard
 2. Environment variables (GEMINI_API_KEY?)
 3. Port binding (phải dùng $PORT từ Render)
@@ -209,6 +234,7 @@ git push origin main
 ```
 
 Sau đó:
+
 1. ☕ Uống coffee (10-15 phút)
 2. 👀 Check Render dashboard
 3. ✅ Test endpoints

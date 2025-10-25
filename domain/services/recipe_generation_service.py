@@ -70,10 +70,6 @@ class RecipeGenerationService:
                     self.t5_client = None
             else:
                 self.t5_client = None
-                self.use_t5 = False
-                self.t5_client = None
-        else:
-            self.t5_client = None
     
     def generate_from_ingredients(self, ingredients: str, language: str = "vi") -> Recipe:
         """

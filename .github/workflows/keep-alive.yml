@@ -26,7 +26,7 @@ jobs:
 
           # Thay YOUR_SERVICE_URL bằng URL thực của bạn
           # Ví dụ: https://rcm-recipe-api.onrender.com
-          SERVICE_URL="${{ secrets.RENDER_SERVICE_URL || 'https://your-service.onrender.com' }}"
+          SERVICE_URL="${{ secrets.RENDER_SERVICE_URL || 'https://rcm-recipe-2.onrender.com' }}"
 
           # Ping endpoint
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/ping")
@@ -45,7 +45,7 @@ jobs:
         run: |
           echo "🏥 Checking service health..."
 
-          SERVICE_URL="${{ secrets.RENDER_SERVICE_URL || 'https://your-service.onrender.com' }}"
+          SERVICE_URL="${{ secrets.RENDER_SERVICE_URL || 'https://rcm-recipe-2.onrender.com' }}"
 
           # Get health status
           curl -s "$SERVICE_URL/health" | jq '.'
